@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>면접관 평가성향 진단 (BDI)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+  :root {
+    --blue: #1A5EAB;
+    --blue-light: #E8F1FB;
+    --blue-mid: #2E7DD1;
+    --green: #0F7A5A;
+    --green-light: #E3F5EE;
+    --amber: #B86B10;
+    --amber-light: #FDF0DC;
+    --red: #C0392B;
+    --red-light: #FDECEB;
+    --gray: #4A5568;
+    --gray-light: #F4F6F9;
+    --border: #DEE5EF;
+    --text: #1A202C;
+    --text-sub: #5A6A80;
+    --white: #FFFFFF;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #F0F4FA;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  .header {
+    background: var(--blue);
+    color: white;
+    padding: 16px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(26,94,171,0.25);
+  }
+  .header-badge {
+    font-size: 10px;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 4px;
+    letter-spacing: 0.05em;
+  }
+  .header-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    background: var(--white);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-bottom: 6px;
+  }
+  .progress-track {
+    height: 5px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--blue-mid));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* Container */
+  .container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+  }
+
+  /* Screens */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Intro */
+  .intro-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .intro-icon {
+    width: 52px;
+    height: 52px;
+    background: var(--blue-light);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    font-size: 24px;
+  }
+  .intro-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.03em;
+    line-height: 1.3;
+  }
+  .intro-desc {
+    font-size: 13px;
+    color: var(--text-sub);
+    line-height: 1.75;
+    margin-bottom: 20px;
+  }
+  .intro-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .meta-item {
+    background: var(--gray-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .meta-val { font-size: 15px; font-weight: 700; color: var(--blue); }
+  .meta-lbl { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+
+  /* Dims info */
+  .dims-list { margin-bottom: 24px; }
+  .dim-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .dim-row:last-child { border-bottom: none; }
+  .dim-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dim-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+  .dim-sub { font-size: 11px; color: var(--text-sub); }
+
+  /* Start Button */
+  .btn-start {
+    width: 100%;
+    padding: 16px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: -0.01em;
+    transition: background 0.15s, transform 0.1s;
+    -webkit-appearance: none;
+  }
+  .btn-start:active { background: #174E8F; transform: scale(0.98); }
+
+  /* Quiz */
+  .q-group-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+  .q-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .q-num { font-size: 11px; color: var(--text-sub); margin-bottom: 10px; font-weight: 500; }
+  .q-text {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  /* Scale */
+  .scale-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .scale-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-sub);
+    margin-bottom: 12px;
+  }
+  .opts {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 4px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    background: var(--white);
+    font-family: inherit;
+    transition: all 0.15s;
+    -webkit-appearance: none;
+  }
+  .opt:active { transform: scale(0.95); }
+  .opt.selected {
+    background: var(--blue-light);
+    border-color: var(--blue);
+  }
+  .opt-num {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-sub);
+    line-height: 1;
+  }
+  .opt.selected .opt-num { color: var(--blue); }
+  .opt-txt {
+    font-size: 9px;
+    color: var(--text-sub);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .opt.selected .opt-txt { color: var(--blue); }
+
+  /* Nav buttons */
+  .nav-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+  }
+  .btn-prev {
+    padding: 14px;
+    background: var(--white);
+    color: var(--text-sub);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .btn-prev:disabled { opacity: 0.35; cursor: default; }
+  .btn-next {
+    padding: 14px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .btn-next:disabled { background: var(--border); color: var(--text-sub); cursor: default; }
+  .btn-next:not(:disabled):active { background: #174E8F; transform: scale(0.98); }
+
+  /* Result */
+  .result-hero {
+    background: var(--blue);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    color: white;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .result-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    font-size: 10px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+  }
+  .result-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .result-sub { font-size: 12px; opacity: 0.8; line-height: 1.5; }
+
+  /* Radar */
+  .radar-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .radar-title { font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.06em; }
+  canvas { display: block; margin: 0 auto; max-width: 100%; }
+
+  /* Score cards */
+  .scores-title { font-size: 12px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .score-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .score-item {
+    background: var(--white);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+  }
+  .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .score-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .score-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+  }
+  .score-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease; }
+  .score-pts { font-size: 11px; color: var(--text-sub); margin-top: 5px; }
+
+  /* Insight cards */
+  .insights-title { font-size: 12px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+  .insight-card {
+    border-radius: var(--radius);
+    padding: 18px 18px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+  }
+  .insight-card.warn { background: var(--amber-light); border-color: #F5D3A0; }
+  .insight-card.tip { background: var(--green-light); border-color: #A0DECA; }
+  .insight-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+  .warn .insight-tag { background: #F5D3A0; color: var(--amber); }
+  .tip .insight-tag { background: #A0DECA; color: var(--green); }
+  .insight-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
+  .insight-body { font-size: 12px; color: var(--text-sub); line-height: 1.7; }
+
+  /* Retry */
+  .btn-retry {
+    width: 100%;
+    padding: 15px;
+    background: var(--white);
+    color: var(--blue);
+    border: 1.5px solid var(--blue);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 8px;
+    -webkit-appearance: none;
+    transition: all 0.15s;
+  }
+  .btn-retry:active { background: var(--blue-light); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-sub);
+    margin-top: 32px;
+    padding-bottom: 20px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">고용노동부 · BDI 공식 진단</div>
+  <div class="header-title">면접관 평가성향 자기진단</div>
+</div>
+
+<div class="progress-wrap" id="prog-wrap" style="display:none">
+  <div class="progress-info">
+    <span id="prog-text">문항 1 / 27</span>
+    <span id="prog-pct">0%</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+</div>
+
+<div class="container">
+
+  <!-- INTRO -->
+  <div class="screen active" id="s-intro">
+    <div class="intro-card">
+      <div class="intro-icon">📋</div>
+      <div class="intro-title">면접관 평가성향<br>자기진단 (BDI)</div>
+      <div class="intro-desc">평가자 평가성향 진단(Bias Disposition Inventory)은 면접관이 갖는 평가오류 성향을 사전에 파악하여 보다 공정하고 정확한 평가역량을 갖추도록 돕는 진단입니다.<br><br>각 문항을 읽고 자신에게 해당하는 정도를 솔직하게 선택해 주세요.</div>
+      <div class="intro-meta">
+        <div class="meta-item"><div class="meta-val">27</div><div class="meta-lbl">총 문항 수</div></div>
+        <div class="meta-item"><div class="meta-val">약 7분</div><div class="meta-lbl">소요 시간</div></div>
+        <div class="meta-item"><div class="meta-val">5가지</div><div class="meta-lbl">평가성향 진단</div></div>
+        <div class="meta-item"><div class="meta-val">무료</div><div class="meta-lbl">익명 · 즉시 결과</div></div>
+      </div>
+      <div class="dims-list">
+        <div class="dim-row"><span class="dim-dot" style="background:#534AB7"></span><span class="dim-name">자기중심적 평가성향</span><span class="dim-sub">귀인오류</span></div>
+        <div class="dim-row"><span class="dim-dot" style="background:#185FA5"></span><span class="dim-name">일부 단서 근거 평가성향</span><span class="dim-sub">후광오류</span></div>
+        <div class="dim-row"><span class="dim-dot" style="background:#0F7A5A"></span><span class="dim-name">첫인상 근거 평가성향</span><span class="dim-sub">첫인상오류</span></div>
+        <div class="dim-row"><span class="dim-dot" style="background:#BA7517"></span><span class="dim-name">관대화 평가성향</span><span class="dim-sub">관대화오류</span></div>
+        <div class="dim-row"><span class="dim-dot" style="background:#993556"></span><span class="dim-name">비일관적 평가성향</span><span class="dim-sub">정서오류</span></div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">진단 시작하기 →</button>
+    </div>
+    <div class="footer">2022 고용노동부 · 한국산업인력공단 능력중심 채용모델 평가위원 가이드북 기반</div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="s-quiz">
+    <div class="q-group-tag" id="q-group">●&nbsp;<span id="q-group-text"></span></div>
+    <div class="q-card">
+      <div class="q-num" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+    <div class="scale-card">
+      <div class="scale-head"><span>① 전혀 그렇지 않다</span><span>⑤ 매우 그렇다</span></div>
+      <div class="opts" id="q-opts"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-prev" id="btn-prev" onclick="prevQ()">← 이전</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>다음 →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="s-result">
+    <div class="result-hero">
+      <div class="result-badge">BDI 평가성향 진단 결과</div>
+      <div class="result-title" id="r-title"></div>
+      <div class="result-sub" id="r-sub"></div>
+    </div>
+
+    <div class="radar-card">
+      <div class="radar-title">평가성향 분포 (레이더 차트)</div>
+      <canvas id="radar" width="280" height="240"></canvas>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;font-size:10px;color:#5A6A80">
+        <span>🔴 70점↑ 매우높음</span>
+        <span>🟡 50~70점 성향있음</span>
+        <span>🟢 30~50점 약함</span>
+        <span>⚫ 30점↓ 거의없음</span>
+      </div>
+    </div>
+
+    <div class="scores-title">5가지 평가성향 점수</div>
+    <div class="score-list" id="score-list"></div>
+
+    <div class="insights-title">주요 성향 해설 및 개선 방법</div>
+    <div id="insights"></div>
+
+    <button class="btn-retry" onclick="restart()">↺ 다시 진단하기</button>
+    <div class="footer">2022 고용노동부 · 한국산업인력공단<br>능력중심 채용모델 평가위원 가이드북 기반 BDI 진단</div>
+  </div>
+
+</div>
+
+<script>
+const DIMS=[
+  {key:'귀인',label:'자기중심적 평가성향',short:'귀인오류',color:'#534AB7',lightColor:'#EEEDFE',items:[1,2,3,4,5,21]},
+  {key:'후광',label:'일부 단서 근거 평가성향',short:'후광오류',color:'#185FA5',lightColor:'#E6F1FB',items:[6,7,8,9,10,17,22,27]},
+  {key:'첫인상',label:'첫인상 근거 평가성향',short:'첫인상오류',color:'#0F7A5A',lightColor:'#E3F5EE',items:[11,12,13,14,18,23,26]},
+  {key:'관대화',label:'관대화 평가성향',short:'관대화오류',color:'#BA7517',lightColor:'#FDF0DC',items:[16,19,24]},
+  {key:'정서',label:'비일관적 평가성향',short:'정서오류',color:'#993556',lightColor:'#FBEAF0',items:[5,15,20,25]}
+];
+
+const QS=[
+  {n:1,t:"나는 사람들에 대한 내 자신의 판단을 믿는다.",g:"자기중심적 평가성향"},
+  {n:2,t:"그 사람이 어떤 사람인지는 한 가지 행동만 봐도 알 수 있다.",g:"자기중심적 평가성향"},
+  {n:3,t:"나는 사람들을 보면 그 사람이 어떤 사람인지를 금새 파악할 수 있다.",g:"자기중심적 평가성향"},
+  {n:4,t:"나는 면접관으로서 내가 내린 결정이 사람들의 인생을 좌우하는 것이 부담스럽다.",g:"자기중심적 평가성향"},
+  {n:5,t:"나는 기분이 좋고 나쁠 때, 사람들을 보는 시각이 달라진다.",g:"자기중심적 평가성향"},
+  {n:6,t:"나는 사람들을 정확하게 평가하는 편이다.",g:"일부 단서 근거 평가성향"},
+  {n:7,t:"그 사람이 어떤 사람인지는 외모에서 잘 드러난다.",g:"일부 단서 근거 평가성향"},
+  {n:8,t:"내 경험에 비추어 보면, 사람들에 대해 초기에 내린 평가가 대부분 맞는 것 같다.",g:"일부 단서 근거 평가성향"},
+  {n:9,t:"나는 누구나 열심히 하면 다 잘할 수 있는 능력이 있다고 생각한다.",g:"일부 단서 근거 평가성향"},
+  {n:10,t:"나는 주변 사람들로부터 귀가 얇다는 소리를 듣곤 한다.",g:"일부 단서 근거 평가성향"},
+  {n:11,t:"내가 아는 누군가에 대해 다른 사람들이 내린 평가가 잘 이해되지 않는 경우들이 있다.",g:"첫인상 근거 평가성향"},
+  {n:12,t:"새롭게 알게 된 어떤 한 가지 사실 때문에 누군가를 전과 다르게 평가하게 되곤 한다.",g:"첫인상 근거 평가성향"},
+  {n:13,t:"나는 사람들을 평가할 때 첫인상을 중시한다.",g:"첫인상 근거 평가성향"},
+  {n:14,t:"짧은 시간 동안에 사람들을 평가하는 것은 옳지 않다고 생각한다.",g:"첫인상 근거 평가성향"},
+  {n:15,t:"어떤 문제로 하루 종일 기분이 저기압을 때가 있다.",g:"비일관적 평가성향"},
+  {n:16,t:"나는 사람들을 평가하는 내 나름대로의 기준을 가지고 있다.",g:"관대화 평가성향"},
+  {n:17,t:"사람들이 보이는 특징(예, 발 흔들기, 말 더듬기, 어두운 인상 등) 중에 내가 개인적으로 싫어하는 특징이 있다.",g:"일부 단서 근거 평가성향"},
+  {n:18,t:"사람들을 처음 보면 이 사람이 어떤 사람일 것 같다는 생각을 하게 된다.",g:"첫인상 근거 평가성향"},
+  {n:19,t:"나는 어떤 사람이 우수한 사람이고 어떤 사람이 아닌지를 판단하는 것이 너무 어렵게 느껴진다.",g:"관대화 평가성향"},
+  {n:20,t:"내가 기분이 좋은지 좋지 않은 지를 주변사람들이 알아차리는 경우들이 많다.",g:"비일관적 평가성향"},
+  {n:21,t:"누군가에 대한 평가에서 주변 사람들과 다르더라도 나는 내 생각을 고수하는 경향이 있다.",g:"자기중심적 평가성향"},
+  {n:22,t:"좋은 학교를 나온 사람들이 대개는 성실하고 책임감도 있는 것 같다.",g:"일부 단서 근거 평가성향"},
+  {n:23,t:"누군가를 처음 만나고 난 뒤, 다른 사람이 그 사람에 대해 물어보면 나는 그 사람이 어떤 사람인 것 같은지 구체적으로 이야기한다.",g:"첫인상 근거 평가성향"},
+  {n:24,t:"사람들은 누구나 남들보다 뛰어난 자기만의 강점을 한 가지 이상씩 가지고 있다.",g:"관대화 평가성향"},
+  {n:25,t:"내가 기분이 좋지 않을 때는 아랫사람들이 나에 대한 행동을 평소보다 조심하는 경향이 있다.",g:"비일관적 평가성향"},
+  {n:26,t:"출신학교나 출신지역이 같은 사람들을 보면 왠지 친근감이 간다.",g:"첫인상 근거 평가성향"},
+  {n:27,t:"말을 잘 하는 사람들이 다른 능력도 우수한 경향이 있다.",g:"일부 단서 근거 평가성향"}
+];
+
+const PROFILES={
+  귀인:{title:"자기중심적 평가 우세형",sub:"기본적 귀인오류 — 자신의 판단 기준으로 지원자를 평가하는 성향이 강합니다",
+    warn:{title:"내 기준 = 절대 기준 착각",body:"자신의 경험과 직관을 과도하게 신뢰하여 조직이 정한 평가기준 대신 개인 판단에 의존할 수 있습니다. 지원자의 행동이 아니라 자신의 기준으로 해석하는 위험이 있습니다."},
+    tip:{title:"근거 기반 채점표(루브릭) 활용",body:"면접 전 역량별 행동지표(BEI 체크리스트)를 작성하고, 지원자의 발언을 기록한 뒤 채점표 기준으로 점수를 부여하세요. '내가 느끼기엔'보다 '지원자가 말한 근거는'에 집중하는 습관을 들이세요."}},
+  후광:{title:"후광 오류 우세형",sub:"일부 단서에 근거한 평가 — 특정 특징 하나가 전체 평가를 좌우하는 성향이 강합니다",
+    warn:{title:"외모·말투·학벌 = 역량이라는 착각",body:"좋은 외모, 유창한 말투, 명문 학벌 등 단일 단서가 전체 역량 평가에 영향을 미칩니다. 한 가지 긍정적 특성이 다른 역량도 높게 보이게 만들거나, 반대로 하나의 부정적 특성이 전체를 끌어내릴 수 있습니다."},
+    tip:{title:"역량 항목별 독립 채점 의무화",body:"각 역량 항목을 개별적으로 채점한 뒤 합산하세요. 전체 인상 점수 대신 항목별 근거 기록을 의무화하면 효과적입니다. 채점 후 역량 간 점수 편차가 너무 크지 않은지 검토하세요."}},
+  첫인상:{title:"첫인상 오류 우세형",sub:"첫인상에 근거한 평가 — 초기 인상이 이후 모든 판단에 영향을 미치는 성향이 강합니다",
+    warn:{title:"면접 초반 3분이 결론을 결정",body:"면접 초반에 형성된 인상이 이후 지원자의 답변을 해석하는 프레임이 됩니다. 좋은 첫인상을 받으면 이후 모호한 답변도 긍정적으로, 나쁜 첫인상이면 좋은 답변도 부정적으로 해석하는 확증 편향이 동반됩니다."},
+    tip:{title:"핵심 역량 질문을 면접 후반에 배치",body:"중요 역량 질문을 면접 중·후반부에 배치하고, 면접 직후 개별 항목별 채점을 즉시 완료하세요. 첫인상 형성 전 평가 기준을 미리 확인하는 습관도 효과적입니다."}},
+  관대화:{title:"관대화 오류 우세형",sub:"관대화 오류 — 지원자를 전반적으로 후하게 평가하는 성향이 강합니다",
+    warn:{title:"변별력 상실로 우수인재 선발 실패",body:"지원자 모두에게 높은 점수를 부여하면 우수한 인재와 그렇지 않은 인재를 구분하기 어려워집니다. '떨어뜨리기 미안해서' 또는 '다 잘할 수 있을 것 같아서' 등의 심리가 작용할 수 있습니다."},
+    tip:{title:"최저 합격 기준을 사전에 명문화",body:"면접 전 각 역량의 최저 합격 행동 기준을 명확히 작성하고, 그 기준에 미치지 못하면 낮은 점수를 부여하는 연습을 하세요. 합격자 비율 목표를 미리 설정하는 것도 도움이 됩니다."}},
+  정서:{title:"비일관적 평가 우세형",sub:"정서적 오류 — 평가 당일 감정 상태에 따라 평가 기준이 달라지는 성향이 강합니다",
+    warn:{title:"면접 당일 컨디션이 합불을 결정",body:"감정 상태가 좋을 때와 나쁠 때의 채점 결과가 달라질 수 있습니다. 특히 연속 면접에서 피로도가 누적되거나, 앞선 면접 결과에 따라 기준이 흔들릴 수 있습니다."},
+    tip:{title:"면접 전 감정 상태 자가 체크 루틴",body:"면접 시작 전 자신의 감정 상태(긍정/부정)를 메모하는 습관을 들이세요. 감정이 격한 날에는 최종 의사결정을 보류하거나 동료 리뷰를 추가하고, 채점 후 일관성을 검토하세요."}}
+};
+
+let cur=0, ans=Array(QS.length).fill(null);
+
+function startQuiz(){
+  document.getElementById('prog-wrap').style.display='block';
+  document.getElementById('s-intro').classList.remove('active');
+  document.getElementById('s-quiz').classList.add('active');
+  renderQ();
+}
+
+function renderQ(){
+  const q=QS[cur];
+  document.getElementById('q-group-text').textContent=q.g;
+  document.getElementById('q-num').textContent=`문항 ${cur+1} / ${QS.length}`;
+  document.getElementById('q-text').textContent=q.t;
+  document.getElementById('prog-text').textContent=`문항 ${cur+1} / ${QS.length}`;
+  const pct=Math.round((cur+1)/QS.length*100);
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-fill').style.width=pct+'%';
+
+  const el=document.getElementById('q-opts');
+  el.innerHTML='';
+  const lbs=[['전혀','그렇지','않다'],['그렇지','않은','편이다'],['보통','이다',''],['그런','편이다',''],['매우','그렇다','']];
+  for(let i=1;i<=5;i++){
+    const b=document.createElement('button');
+    b.className='opt'+(ans[cur]===i?' selected':'');
+    b.innerHTML=`<span class="opt-num">${i}</span><span class="opt-txt">${lbs[i-1].filter(x=>x).join('\n')}</span>`;
+    b.onclick=(v=>()=>selectOpt(v))(i);
+    el.appendChild(b);
+  }
+  document.getElementById('btn-prev').disabled=cur===0;
+  document.getElementById('btn-next').textContent=cur===QS.length-1?'결과 보기 →':'다음 →';
+  document.getElementById('btn-next').disabled=ans[cur]===null;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function selectOpt(v){
+  ans[cur]=v;
+  document.querySelectorAll('.opt').forEach((o,j)=>o.classList.toggle('selected',j+1===v));
+  document.getElementById('btn-next').disabled=false;
+}
+function prevQ(){if(cur>0){cur--;renderQ();}}
+function nextQ(){
+  if(ans[cur]===null)return;
+  if(cur<QS.length-1){cur++;renderQ();}
+  else showResult();
+}
+
+function calcScores(){
+  const raw={},cnt={};
+  DIMS.forEach(d=>{raw[d.key]=0;cnt[d.key]=0;});
+  DIMS.forEach(d=>{
+    d.items.forEach(n=>{
+      const i=n-1;
+      if(ans[i]!==null){raw[d.key]+=ans[i];cnt[d.key]++;}
+    });
+  });
+  const pct={};
+  DIMS.forEach(d=>{pct[d.key]=cnt[d.key]>0?Math.round(raw[d.key]/cnt[d.key]/5*100):0;});
+  return pct;
+}
+
+function interp(v){
+  if(v>=70)return{label:'매우 높음',color:'#C0392B',bg:'#FDECEB'};
+  if(v>=50)return{label:'성향 있음',color:'#B86B10',bg:'#FDF0DC'};
+  if(v>=30)return{label:'약함',color:'#0F7A5A',bg:'#E3F5EE'};
+  return{label:'거의 없음',color:'#4A5568',bg:'#F4F6F9'};
+}
+
+function showResult(){
+  document.getElementById('prog-fill').style.width='100%';
+  document.getElementById('prog-text').textContent='진단 완료';
+  document.getElementById('prog-pct').textContent='100%';
+  document.getElementById('s-quiz').classList.remove('active');
+  document.getElementById('s-result').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  const scores=calcScores();
+  let maxKey=DIMS[0].key, maxVal=0;
+  DIMS.forEach(d=>{if(scores[d.key]>maxVal){maxVal=scores[d.key];maxKey=d.key;}});
+  const prof=PROFILES[maxKey];
+  document.getElementById('r-title').textContent=prof.title;
+  document.getElementById('r-sub').textContent=prof.sub;
+
+  setTimeout(()=>drawRadar(scores),100);
+
+  const sl=document.getElementById('score-list');
+  sl.innerHTML='';
+  DIMS.forEach(d=>{
+    const v=scores[d.key],ip=interp(v);
+    sl.innerHTML+=`<div class="score-item">
+      <div class="score-row">
+        <span class="score-name">${d.label}</span>
+        <span class="score-badge" style="background:${ip.bg};color:${ip.color}">${ip.label}</span>
+      </div>
+      <div class="score-track"><div class="score-fill" style="width:0%;background:${d.color}" data-w="${v}"></div></div>
+      <div class="score-pts">${d.short} · ${v}점</div>
+    </div>`;
+  });
+  setTimeout(()=>document.querySelectorAll('.score-fill').forEach(b=>b.style.width=b.dataset.w+'%'),200);
+
+  const ins=document.getElementById('insights');
+  ins.innerHTML='';
+  const toShow=[maxKey,...DIMS.filter(d=>d.key!==maxKey&&scores[d.key]>=50).map(d=>d.key)].slice(0,2);
+  toShow.forEach(k=>{
+    const p=PROFILES[k],d=DIMS.find(x=>x.key===k);
+    ins.innerHTML+=`
+    <div style="font-size:11px;font-weight:700;color:${d.color};margin:14px 0 8px;text-transform:uppercase;letter-spacing:0.06em">${d.label}</div>
+    <div class="insight-card warn">
+      <div class="insight-tag">⚠ 주의 포인트</div>
+      <div class="insight-title">${p.warn.title}</div>
+      <div class="insight-body">${p.warn.body}</div>
+    </div>
+    <div class="insight-card tip">
+      <div class="insight-tag">✓ 개선 방법</div>
+      <div class="insight-title">${p.tip.title}</div>
+      <div class="insight-body">${p.tip.body}</div>
+    </div>`;
+  });
+}
+
+function drawRadar(scores){
+  const canvas=document.getElementById('radar');
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||280, H=240;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=W/2, cy=H/2+8, R=Math.min(W,H)/2-52;
+  const keys=['귀인','후광','첫인상','관대화','정서'];
+  const labels=['자기중심적\n(귀인오류)','일부단서\n(후광오류)','첫인상\n(첫인상오류)','관대화\n(관대화오류)','비일관적\n(정서오류)'];
+  const n=keys.length;
+  const colors=DIMS.map(d=>d.color);
+  ctx.clearRect(0,0,W,H);
+  for(let ring=1;ring<=4;ring++){
+    ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const a=Math.PI*2*i/n-Math.PI/2;
+      const r=R*(ring/4);
+      i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.closePath();
+    ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;ctx.stroke();
+    if(ring===2||ring===4){
+      ctx.font=`9px 'Noto Sans KR',sans-serif`;ctx.fillStyle='rgba(0,0,0,0.3)';ctx.textAlign='center';
+      ctx.fillText(ring===4?'100':'50',cx+3,cy-R*(ring/4)-3);
+    }
+  }
+  for(let i=0;i<n;i++){
+    const a=Math.PI*2*i/n-Math.PI/2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));
+    ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=0.5;ctx.stroke();
+  }
+  ctx.beginPath();
+  keys.forEach((k,i)=>{
+    const v=scores[k]/100;
+    const a=Math.PI*2*i/n-Math.PI/2;
+    i===0?ctx.moveTo(cx+R*v*Math.cos(a),cy+R*v*Math.sin(a)):ctx.lineTo(cx+R*v*Math.cos(a),cy+R*v*Math.sin(a));
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(24,95,165,0.15)';ctx.fill();
+  ctx.strokeStyle='#185FA5';ctx.lineWidth=2;ctx.stroke();
+  keys.forEach((k,i)=>{
+    const v=scores[k]/100;
+    const a=Math.PI*2*i/n-Math.PI/2;
+    ctx.beginPath();ctx.arc(cx+R*v*Math.cos(a),cy+R*v*Math.sin(a),5,0,Math.PI*2);
+    ctx.fillStyle=colors[i];ctx.fill();
+  });
+  ctx.font=`9.5px 'Noto Sans KR',sans-serif`;ctx.fillStyle='rgba(0,0,0,0.55)';ctx.textAlign='center';
+  labels.forEach((lb,i)=>{
+    const a=Math.PI*2*i/n-Math.PI/2;
+    const dist=R+34;
+    const lx=cx+dist*Math.cos(a), ly=cy+dist*Math.sin(a);
+    const lines=lb.split('\n');
+    lines.forEach((line,j)=>ctx.fillText(line,lx,ly+(j-(lines.length-1)/2)*13));
+  });
+}
+
+function restart(){
+  cur=0;ans=Array(QS.length).fill(null);
+  document.getElementById('s-result').classList.remove('active');
+  document.getElementById('s-intro').classList.add('active');
+  document.getElementById('prog-wrap').style.display='none';
+  document.getElementById('prog-fill').style.width='0%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
